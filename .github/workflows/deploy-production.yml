@@ -1,0 +1,54 @@
+﻿name: Deploy: Production
+
+on:
+  # Manual trigger (good for hotfixes or controlled releases)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Optional version or tag to deploy"
+        required: false
+
+  # Automatic trigger after staging finishes successfully
+  workflow_run:
+    workflows: ["Deploy: Staging"]
+    types: [completed]
+
+permissions:
+  contents: read
+  deployments: write
+  actions: read
+  id-token: write   # keep if you’ll use OIDC to cloud
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # a) manual dispatch OR
+    # b) staging workflow finished with success AND branch is main
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+
+    # This enforces your environment gate (approver + main-only)
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Optionally use the input version/tag
+      - name: Resolve version
+        id: ver
+        run: |
+          echo "version=${{ github.event.inputs.version || 'current' }}" >> "$GITHUB_OUTPUT"
+
+      # TODO: Replace these placeholders with real deploy commands
+      - name: Deploy to PRODUCTION
+        id: deploy
+        run: |
+          echo "Deploying version ${{ steps.ver.outputs.version }} to production…"
+          # e.g., helm upgrade … / terraform apply / blue-green switch / migrations, etc.
+          echo "url=https://app.example.com" >> "$GITHUB_OUTPUT"

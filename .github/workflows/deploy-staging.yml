@@ -1,31 +1,42 @@
-﻿name: Deploy (staging)
+﻿name: Deploy: Staging
+
 on:
-  pull_request:
-    branches: [ main ]
+  # Run automatically after the CI workflow finishes
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: read
+  deployments: write
+  actions: read
+  id-token: write   # keep if you’ll use OIDC to cloud
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-      - run: npm ci
-      - run: npm run build --if-present
-
   deploy:
-    name: Deploy to staging
-    needs: build
+    # only if CI succeeded AND the source branch is main
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+
     environment:
       name: staging
-      url: https://staging.example.com
+      url: ${{ steps.deploy.outputs.url || '' }}
+
     steps:
-      - name: Simulate staging deploy
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # TODO: Replace these placeholders with real deploy commands
+      - name: Build release artifact (if needed)
+        run: echo "Build or pull artifact here"
+
+      - name: Deploy to STAGING
+        id: deploy
         run: |
-          echo "Deploying to STAGING..."
-          # put your real deploy steps here (e.g., helm, serverless, vercel, etc.)
-          echo "Done"
+          echo "Deploying to staging…"
+          # e.g., helm upgrade … / terraform apply / serverless deploy / rsync, etc.
+          echo "url=https://staging.example.com" >> "$GITHUB_OUTPUT"
