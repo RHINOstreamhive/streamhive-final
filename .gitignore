@@ -1,0 +1,32 @@
+﻿# Node
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+bun.lockb
+
+# Builds / temp
+dist/
+.out/
+.temp/
+*.tmp
+*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env & secrets
+.env
+services/*/.env
+*.key
+*.pem
+
+# Local outputs
+services/out/
+db-dumps/
+
+# Docker
+**/.docker/
+**/docker-data/
