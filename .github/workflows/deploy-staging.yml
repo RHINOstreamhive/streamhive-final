@@ -1,0 +1,31 @@
+﻿name: Deploy (staging)
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run build --if-present
+
+  deploy:
+    name: Deploy to staging
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.example.com
+    steps:
+      - name: Simulate staging deploy
+        run: |
+          echo "Deploying to STAGING..."
+          # put your real deploy steps here (e.g., helm, serverless, vercel, etc.)
+          echo "Done"
