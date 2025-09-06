@@ -1,0 +1,121 @@
+<!-- services/notifications/src/static/console.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Creator Console</title>
+  <style>
+    :root{ color-scheme:dark; }
+    body{ margin:0; font:14px/1.4 Inter, system-ui, sans-serif; background:#0b0c10; color:#e6e6eb;}
+    .wrap{ max-width:1200px; margin:32px auto; padding:0 24px;}
+    .card{ background:#12131a; border:1px solid #1d2030; border-radius:14px; padding:18px; margin:16px 0;}
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+    input,button{ font:14px/1.2 inherit; padding:10px 12px; border-radius:10px; border:1px solid #2d3150; background:#0f1020; color:#eee;}
+    button{ background:#6d53ff; border-color:#6d53ff; cursor:pointer;}
+    h2{ margin:0 0 10px 0; font-size:16px; color:#bac2ff;}
+    table{ width:100%; border-collapse: collapse; }
+    th,td{ padding:10px 8px; border-top:1px solid #1d2030; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Creator Console</h1>
+
+    <div class="card">
+      <h2>Overlay Controls</h2>
+      <div>Open overlay in another tab:
+        <code>http://localhost:7500/overlay?creator_id=creator:alpha</code>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="ping">Send Test Ping</button>
+        <input id="tipFrom" placeholder="from (viewer)" value="viewer:heino" />
+        <input id="tipTo" placeholder="to (creator)" value="creator:alpha" />
+        <input id="tipAmt" placeholder="amount cents" type="number" value="299" min="1" />
+        <button id="sendTip">Simulate Tip (via API)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Balances</h2>
+      <div class="row">
+        <input id="vUser" value="viewer:heino"/>
+        <input id="cUser" value="creator:alpha"/>
+        <input id="pUser" value="platform:fees"/>
+        <button id="refresh">Refresh Balances</button>
+      </div>
+      <table style="margin-top:10px;">
+        <thead><tr><th>User</th><th>Balance (cents)</th></tr></thead>
+        <tbody id="balT"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Receipts</h2>
+      <button id="loadReceipts">Load creator receipts</button>
+      <table style="margin-top:10px;">
+        <thead>
+          <tr><th>ID</th><th>Ref</th><th>Reason</th><th>Gross</th><th>Net</th><th>Fee</th><th>Created</th></tr>
+        </thead>
+        <tbody id="recT"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+
+    // Test ping (overlay-only)
+    $("#ping").onclick = async ()=>{
+      await fetch("http://localhost:7500/send", {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify({ kind:"creator_event", to:"creator:alpha", message:"Test ping" })
+      });
+    };
+
+    // Send Tip through API (moves money + notifies overlay)
+    $("#sendTip").onclick = async ()=>{
+      const from = $("#tipFrom").value.trim();
+      const to = $("#tipTo").value.trim();
+      const amount_cents = Number($("#tipAmt").value || 0);
+      const res = await fetch("http://localhost:7100/tip", {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify({ from_user_id: from, to_user_id: to, amount_cents })
+      });
+      const j = await res.json();
+      alert(res.ok ? `OK: ${j.ref}` : `ERR: ${j.message || res.statusText}`);
+    };
+
+    // Balances
+    async function loadBalance(id){
+      const r = await fetch(`http://localhost:7101/wallets/${encodeURIComponent(id)}/balance`);
+      const j = await r.json();
+      return j.balance_cents ?? 0;
+    }
+    $("#refresh").onclick = async ()=>{
+      const bV = await loadBalance($("#vUser").value);
+      const bC = await loadBalance($("#cUser").value);
+      const bP = await loadBalance($("#pUser").value);
+      $("#balT").innerHTML = `
+        <tr><td>${$("#vUser").value}</td><td>${bV}</td></tr>
+        <tr><td>${$("#cUser").value}</td><td>${bC}</td></tr>
+        <tr><td>${$("#pUser").value}</td><td>${bP}</td></tr>
+      `;
+    };
+
+    // Receipts (from API-gateway passthrough)
+    $("#loadReceipts").onclick = async ()=>{
+      const r = await fetch(`http://localhost:7100/creators/${encodeURIComponent($("#cUser").value)}/receipts`);
+      const j = await r.json();
+      const rows = (j.receipts || []).map(x=>`
+        <tr>
+          <td>${x.id}</td><td>${x.ref}</td><td>${x.reason}</td>
+          <td>${x.gross_cents}</td><td>${x.net_cents}</td><td>${x.fee_cents}</td>
+          <td>${x.created_at}</td>
+        </tr>`).join("");
+      $("#recT").innerHTML = rows || `<tr><td colspan="7">No receipts yet</td></tr>`;
+    };
+  </script>
+</body>
+</html>

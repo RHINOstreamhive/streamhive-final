@@ -30,3 +30,11 @@ db-dumps/
 # Docker
 **/.docker/
 **/docker-data/
+# Additional safety
+services/**/.env
+services/**/data/
+services/**/out/
+services/**/streamhive/
+services/**/returns/
+**/node_modules/
+**/*.log

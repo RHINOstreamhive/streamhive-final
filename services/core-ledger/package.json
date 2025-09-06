@@ -1,0 +1,52 @@
+{
+  "name": "@streamhive/core-ledger",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "payout:smoke": "ts-node --esm src/run/payoutSmoke.ts",
+    "payout:preview": "ts-node --esm src/jobs/payoutJob.ts",
+    "audit:export": "ts-node --esm src/jobs/auditExport.ts",
+    "itr14:pack": "ts-node --esm src/jobs/submit/itr14Pack.ts",
+    "irp6:pack": "ts-node --esm src/jobs/submit/irp6Pack.ts",
+    "emp:pack": "ts-node --esm src/jobs/submit/empPack.ts",
+    "vat:pack": "ts-node --esm src/jobs/submit/vatPack.ts",
+    "sink:email:once": "ts-node --esm src/jobs/sinks/emailSink.ts",
+    "sink:email:watch": "ts-node --esm src/jobs/sinks/watchEmailSink.ts",
+    "tax:index": "ts-node --esm src/tax/indexer.ts",
+    "tax:compile": "ts-node --esm src/tax/compile.ts",
+    "build:audit-pack": "ts-node --esm src/cli/generateAuditPack.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "archiver": "^7.0.1",
+    "cross-spawn": "^7.0.6",
+    "csv-stringify": "^6.6.0",
+    "csv-writer": "^1.6.0",
+    "dayjs": "^1.11.18",
+    "dotenv": "^16.6.1",
+    "fast-glob": "^3.3.3",
+    "fastify": "^4.28.1",
+    "fs-extra": "^11.3.1",
+    "imapflow": "^1.0.164",
+    "mailparser": "^3.7.1",
+    "mime-types": "^2.1.35",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.16.3",
+    "pino": "^9.0.0",
+    "yargs": "^18.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/node": "^24.3.1",
+    "@types/yargs": "^17.0.33",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

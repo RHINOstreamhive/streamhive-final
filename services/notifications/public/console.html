@@ -1,0 +1,96 @@
+﻿<!doctype html><meta charset="utf-8"/>
+<title>StreamHive Console</title>
+<style>
+  body{margin:0;font-family:system-ui;background:#0b0e14;color:#e6e6e6}
+  header{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid #1b2130}
+  .dot{width:10px;height:10px;border-radius:50%;background:#ff4d4f}
+  .ok{background:#2ecc71}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+  .card{background:#111723;border:1px solid #1b2130;border-radius:12px;padding:16px}
+  button{background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{border-bottom:1px solid #1b2130;padding:8px;text-align:left}
+  input{background:#0b0e14;border:1px solid #1b2130;border-radius:8px;color:#e6e6e6;padding:8px;width:100%}
+  small{opacity:.7}
+</style>
+<header>
+  <div id="wss" class="dot"></div>
+  <div><strong>Creator Console</strong><br/><small id="cid"></small></div>
+</header>
+<div class="grid">
+  <div class="card">
+    <h3>Overlay Controls</h3>
+    <button id="pingBtn">Send Test Ping</button>
+    <button id="subBtn">Simulate Subscribe</button>
+    <p><small>Open overlay: <code id="overlayUrl"></code></small></p>
+  </div>
+  <div class="card">
+    <h3>Balances</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div><small>Viewer</small><input id="viewerId" value="viewer:heino"/></div>
+      <div><small>Creator</small><input id="creatorId" value="creator:alpha"/></div>
+      <div><small>Platform</small><input id="platformId" value="platform:fees"/></div>
+    </div>
+    <button id="refreshBal">Refresh Balances</button>
+    <table><thead><tr><th>User</th><th>Balance (cents)</th></tr></thead><tbody id="balBody"></tbody></table>
+  </div>
+  <div class="card" style="grid-column:1 / span 2">
+    <h3>Receipts</h3>
+    <button id="loadReceipts">Load creator receipts</button>
+    <table><thead><tr><th>ID</th><th>Ref</th><th>Reason</th><th>Gross</th><th>Net</th><th>Fee</th><th>Created</th></tr></thead><tbody id="recBody"></tbody></table>
+  </div>
+</div>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  const creator=params.get("creator_id")||"creator:alpha";
+  document.getElementById("cid").textContent = "creator: " + creator;
+  const overlay = location.origin + "/overlay?creator_id=" + encodeURIComponent(creator);
+  document.getElementById("overlayUrl").textContent = overlay;
+
+  // ws heartbeat
+  const url=(location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws?creator_id="+encodeURIComponent(creator);
+  const dot=document.getElementById("wss");
+  try{ const ws=new WebSocket(url);
+    ws.onopen = ()=> dot.classList.add("ok");
+    ws.onclose= ()=> dot.classList.remove("ok");
+  }catch(_){}
+
+  // buttons
+  document.getElementById("pingBtn").onclick=async ()=>{
+    await fetch("/send",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({kind:"creator_event",to:creator,message:"Test ping"})});
+  };
+  document.getElementById("subBtn").onclick=async ()=>{
+    const viewer=document.getElementById("viewerId").value;
+    await fetch("http://localhost:7100/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({viewer_id:viewer,creator_id:creator,price_cents:199})});
+  };
+  document.getElementById("refreshBal").onclick=loadBalances;
+  document.getElementById("loadReceipts").onclick=loadReceipts;
+
+  async function loadBalances(){
+    const ids=[document.getElementById("viewerId").value,document.getElementById("creatorId").value,document.getElementById("platformId").value];
+    let rows="";
+    for (const id of ids){
+      try{
+        const r=await fetch("http://localhost:7101/wallets/"+encodeURIComponent(id)+"/balance");
+        const j=await r.json(); rows+=`<tr><td>${j.userId}</td><td>${j.balance_cents}</td></tr>`;
+      }catch{ rows+=`<tr><td>${id}</td><td>ERR</td></tr>`; }
+    }
+    document.getElementById("balBody").innerHTML=rows;
+  }
+  async function loadReceipts(){
+    try{
+      const r=await fetch("http://localhost:7100/creators/"+encodeURIComponent(creator)+"/receipts");
+      const j=await r.json(); let rows="";
+      (j.receipts||[]).forEach(x=>{
+        rows+=`<tr><td>${x.id}</td><td>${x.ref}</td><td>${x.reason}</td><td>${x.gross_cents}</td><td>${x.net_cents}</td><td>${x.fee_cents}</td><td>${x.created_at}</td></tr>`;
+      });
+      document.getElementById("recBody").innerHTML=rows;
+    }catch(e){ console.error(e); }
+  }
+  loadBalances();
+})();
+</script>
