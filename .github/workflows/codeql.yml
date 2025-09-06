@@ -1,0 +1,51 @@
+﻿name: CodeQL
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - "docs/**"
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - "docs/**"
+  schedule:
+    - cron: "0 3 * * 0" # Sunday 03:00 UTC
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Autobuild (JS/TS projects usually OK to skip, but harmless)
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
