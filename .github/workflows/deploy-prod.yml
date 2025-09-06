@@ -1,0 +1,33 @@
+﻿name: Deploy (production)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test --if-present
+
+  deploy:
+    name: Deploy to production
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production          # <- this must match the environment you created
+      url: https://app.example.com
+    steps:
+      - name: Simulate production deploy
+        run: |
+          echo "Deploying to PRODUCTION..."
+          # put your real deploy steps here (e.g., kubectl/helm/ssh/vercel/aws)
+          echo "Done"

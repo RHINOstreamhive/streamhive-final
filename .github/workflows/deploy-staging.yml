@@ -1,0 +1,42 @@
+﻿name: Deploy: Staging
+
+on:
+  # Run automatically after the CI workflow finishes
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: read
+  deployments: write
+  actions: read
+  id-token: write   # keep if you’ll use OIDC to cloud
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # only if CI succeeded AND the source branch is main
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # TODO: Replace these placeholders with real deploy commands
+      - name: Build release artifact (if needed)
+        run: echo "Build or pull artifact here"
+
+      - name: Deploy to STAGING
+        id: deploy
+        run: |
+          echo "Deploying to staging…"
+          # e.g., helm upgrade … / terraform apply / serverless deploy / rsync, etc.
+          echo "url=https://staging.example.com" >> "$GITHUB_OUTPUT"
