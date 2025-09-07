@@ -1,4 +1,4 @@
-﻿
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -8,7 +8,7 @@ services:
       - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-streamhive}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-streamhive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-example-password}
       POSTGRES_DB: ${POSTGRES_DB:-streamhive}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
