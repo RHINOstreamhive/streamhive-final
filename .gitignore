@@ -38,3 +38,5 @@ services/**/streamhive/
 services/**/returns/
 **/node_modules/
 **/*.log
+docker-compose.override.yml.bak
+hours-log.md
