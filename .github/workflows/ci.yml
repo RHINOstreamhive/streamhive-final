@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: build
+    name: CI / build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,5 +25,3 @@ jobs:
 
       - name: Run tests
         run: npm test --if-present
-
-# trigger CI on PR branch 2025-09-07T21:28:24
