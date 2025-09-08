@@ -27,7 +27,8 @@
                     "lint":  "eslint .",
                     "build":  "echo Build OK",
                     "test":  "vitest run --coverage",
-                    "dev":  "vitest"
+                    "dev":  "vitest",
+                    "smoke":  "vitest run tests/integration/*.test.ts"
                 },
     "devDependencies":  {
                             "@types/cross-spawn":  "^6.0.6",
