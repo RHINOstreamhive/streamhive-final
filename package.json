@@ -28,7 +28,9 @@
                     "build":  "echo Build OK",
                     "test":  "vitest run --coverage",
                     "dev":  "vitest",
-                    "smoke":  "vitest run tests/integration/*.test.ts"
+                    "smoke":  "vitest run tests/integration/*.test.ts",
+                    "ci:all":  "npm run lint \u0026\u0026 npm test",
+                    "seed":  "tsx scripts/seed.ts"
                 },
     "devDependencies":  {
                             "@types/cross-spawn":  "^6.0.6",
