@@ -1,16 +1,12 @@
-﻿// Minimal ESLint with TS and import sorting
-export default {
+﻿// eslint.config.cjs (flat config style optional; simple config here)
+module.exports = {
   root: true,
+  env: { es2022: true, node: true, browser: true },
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "import"],
+  plugins: ["@typescript-eslint"],
   extends: [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:import/recommended",
-    "plugin:import/typescript",
-    "prettier"
+    "plugin:@typescript-eslint/recommended"
   ],
-  rules: {
-    "import/order": ["warn", { "newlines-between": "always" }]
-  }
+  ignorePatterns: ["dist","coverage","**/*.d.ts"]
 };

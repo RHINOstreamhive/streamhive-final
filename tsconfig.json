@@ -2,13 +2,16 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "Bundler",
     "strict": true,
+    "declaration": false,
     "skipLibCheck": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "outDir": "dist",
-    "types": ["vitest/importMeta"]
+    "allowJs": false,
+    "noEmit": true,
+    "types": ["vitest/importMeta", "vitest/globals"]
   },
-  "include": ["src", "tests", "scripts"]
+  "exclude": ["node_modules","dist","coverage"]
 }
